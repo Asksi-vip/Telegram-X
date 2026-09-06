@@ -29,17 +29,20 @@ jobs:
               if not path or not url:
                   continue
               branch = config.get(section, "branch", fallback=None)
-              if os.path.exists(path) and len(os.listdir(path)) > 0:
-                  continue
-              print(f"Cloning submodule {path} from {url}...")
-              dirname = os.path.dirname(path)
-              if dirname:
-                  os.makedirs(dirname, exist_ok=True)
-              cmd = ["git", "clone", "--depth", "1"]
-              if branch:
-                  cmd.extend(["-b", branch])
-              cmd.extend([url, path])
-              subprocess.run(cmd, check=False)
+              if not (os.path.exists(path) and len(os.listdir(path)) > 0):
+                  print(f"Cloning submodule {path} from {url}...")
+                  dirname = os.path.dirname(path)
+                  if dirname:
+                      os.makedirs(dirname, exist_ok=True)
+                  cmd = ["git", "clone", "--depth", "1"]
+                  if branch:
+                      cmd.extend(["-b", branch])
+                  cmd.extend([url, path])
+                  subprocess.run(cmd, check=False)
+              
+              if os.path.exists(os.path.join(path, ".gitmodules")):
+                  print(f"Cloning nested submodules inside {path}...")
+                  subprocess.run(["git", "submodule", "update", "--init", "--recursive", "--depth", "1"], cwd=path, check=False)
           '
 
       - name: Set up JDK 21
