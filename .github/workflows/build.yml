@@ -18,8 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: Clone All Submodules Recursively
-        run: |
-          git submodule update --init --recursive --depth=1
+        run: python3 scripts/clone-submodules.py
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
