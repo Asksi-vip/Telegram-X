@@ -12,11 +12,33 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout Code with Submodules
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           fetch-depth: 0
+
+      - name: Clone All Submodules
+        run: |
+          python3 -c '
+          import configparser, subprocess, os
+          config = configparser.ConfigParser()
+          config.read(".gitmodules")
+          for section in config.sections():
+              path = config.get(section, "path", fallback=None)
+              url = config.get(section, "url", fallback=None)
+              if not path or not url:
+                  continue
+              branch = config.get(section, "branch", fallback=None)
+              if os.path.exists(path) and len(os.listdir(path)) > 0:
+                  continue
+              print(f"Cloning submodule {path} from {url}...")
+              os.makedirs(os.path.dirname(path), exist_ok=True)
+              cmd = ["git", "clone", "--depth", "1"]
+              if branch:
+                  cmd.extend(["-b", branch])
+              cmd.extend([url, path])
+              subprocess.run(cmd, check=False)
+          '
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
