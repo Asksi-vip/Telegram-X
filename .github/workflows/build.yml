@@ -30,8 +30,14 @@ jobs:
 
       - name: Install Android NDK & CMake
         run: |
+          SDK_PACKAGE=$(grep "version.sdk_package" version.properties | cut -d'=' -f2)
+          BUILD_TOOLS_VERSION=$(grep "version.build_tools" version.properties | cut -d'=' -f2)
+          NDK_PRIMARY=$(grep "version.ndk_primary" version.properties | cut -d'=' -f2)
+          NDK_LEGACY=$(grep "version.ndk_legacy" version.properties | cut -d'=' -f2)
+          CMAKE_VERSION=$(grep "version.cmake" version.properties | cut -d'=' -f2)
+          
           echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-37" "build-tools;37.0.0" "ndk;27.3.13750724" "ndk;23.2.8568313" "cmake;3.22.1"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;$SDK_PACKAGE" "build-tools;$BUILD_TOOLS_VERSION" "ndk;$NDK_PRIMARY" "ndk;$NDK_LEGACY" "cmake;$CMAKE_VERSION" || true
 
       - name: Create local.properties
         run: |
