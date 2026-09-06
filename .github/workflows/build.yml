@@ -32,7 +32,9 @@ jobs:
               if os.path.exists(path) and len(os.listdir(path)) > 0:
                   continue
               print(f"Cloning submodule {path} from {url}...")
-              os.makedirs(os.path.dirname(path), exist_ok=True)
+              dirname = os.path.dirname(path)
+              if dirname:
+                  os.makedirs(dirname, exist_ok=True)
               cmd = ["git", "clone", "--depth", "1"]
               if branch:
                   cmd.extend(["-b", branch])
