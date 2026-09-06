@@ -21,16 +21,28 @@ jobs:
         run: |
           python3 -c '
           import configparser, subprocess, os
+
+          def is_cloned(path):
+              if not os.path.exists(path):
+                  return False
+              contents = [item for item in os.listdir(path) if item != ".git"]
+              return len(contents) > 0
+
           config = configparser.ConfigParser()
           config.read(".gitmodules")
+
           for section in config.sections():
               path = config.get(section, "path", fallback=None)
               url = config.get(section, "url", fallback=None)
               if not path or not url:
                   continue
               branch = config.get(section, "branch", fallback=None)
-              if not (os.path.exists(path) and len(os.listdir(path)) > 0):
+              
+              if not is_cloned(path):
                   print(f"Cloning submodule {path} from {url}...")
+                  if os.path.exists(path):
+                      import shutil
+                      shutil.rmtree(path, ignore_errors=True)
                   dirname = os.path.dirname(path)
                   if dirname:
                       os.makedirs(dirname, exist_ok=True)
@@ -39,11 +51,8 @@ jobs:
                       cmd.extend(["-b", branch])
                   cmd.extend([url, path])
                   subprocess.run(cmd, check=False)
-              
-              if os.path.exists(os.path.join(path, ".gitmodules")):
-                  print(f"Cloning nested submodules inside {path}...")
-                  subprocess.run(["git", "submodule", "update", "--init", "--recursive", "--depth", "1"], cwd=path, check=False)
           '
+          git submodule update --init --recursive --depth 1 || true
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
