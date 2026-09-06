@@ -1,0 +1,61 @@
+name: Build Telegram X
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout Code with Submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK & CMake
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-37" "build-tools;37.0.0" "ndk;27.3.13750724" "ndk;23.2.8568313" "cmake;3.22.1"
+
+      - name: Create local.properties
+        run: |
+          cat <<EOF > local.properties
+          sdk.dir=$ANDROID_HOME
+          app.disable_signing=true
+          app.id=org.thunderdog.challegram
+          app.name=Telegram X
+          app.download_url=https://telegram.org/dlx
+          app.sources_url=https://github.com/${{ github.repository }}
+          telegram.api_id=6
+          telegram.api_hash=eb066357e523465a1914b35945e486d8
+          tgx.extension=none
+          EOF
+
+      - name: Make scripts and gradlew executable
+        run: chmod +x gradlew scripts/*.sh
+
+      - name: Build Telegram X
+        run: ./gradlew assembleLatestUniversalDebug --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Telegram-X-APK
+          path: app/build/outputs/apk/**/*.apk
+          if-no-files-found: ignore
