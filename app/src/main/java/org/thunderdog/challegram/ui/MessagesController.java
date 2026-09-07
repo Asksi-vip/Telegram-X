@@ -805,7 +805,8 @@ public class MessagesController extends ViewController<MessagesController.Argume
       addThemeHintTextColorListener(inputView, ColorId.textPlaceholder);
       inputView.setLinkTextColor(Theme.textLinkColor());
       addThemeLinkTextColorListener(inputView, ColorId.textLink);
-      ViewSupport.setThemedBackground(inputView, ColorId.filling, this);
+      // Apple iMessage: inputView draws its own pill background
+      // ViewSupport.setThemedBackground(inputView, ColorId.filling, this);
       inputView.setHighlightColor(Theme.fillingTextSelectionColor());
       addThemeHighlightColorListener(inputView, ColorId.textSelectionHighlight);
       bindLocaleChanger(inputView.setController(this));

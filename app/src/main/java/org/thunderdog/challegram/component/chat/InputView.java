@@ -18,12 +18,11 @@ import android.content.ClipDescription;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Outline;
+import android.graphics.RectF;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
-import android.view.ViewOutlineProvider;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.Layout;
@@ -146,6 +145,11 @@ public class InputView extends NoClipEditText implements InlineSearchContext.Cal
   private CharSequence placeholderSubtitleText;
 
   private final BoolAnimator showPlaceholder = new BoolAnimator(0, (a, b, c, d) -> invalidate(), AnimatorUtils.DECELERATE_INTERPOLATOR, 180L);
+  // Apple iMessage pill background
+  private final RectF pillRect = new RectF();
+  private static final int APPLE_GRAY_BG = 0xFFE9E9EB;  // iMessage input gray
+  private static final float PILL_RADIUS_DP = 20f;
+
   private final BoolAnimator hasSubPlaceholder = new BoolAnimator(0, (a, b, c, d) -> invalidate(), AnimatorUtils.DECELERATE_INTERPOLATOR, 180L);
   private final ReplaceAnimator<Text> subtitleReplaceAnimator = new ReplaceAnimator<>(a -> invalidate(), AnimatorUtils.DECELERATE_INTERPOLATOR, 180L);
 
@@ -215,17 +219,6 @@ public class InputView extends NoClipEditText implements InlineSearchContext.Cal
     Views.clearCursorDrawable(this);
     setMaxCodePointCount(0);
 
-    // Apple Messages style: rounded pill-shaped input
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      setOutlineProvider(new ViewOutlineProvider() {
-        @Override
-        public void getOutline (View view, android.graphics.Outline outline) {
-          outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), Screen.dp(20f));
-        }
-      });
-      setClipToOutline(true);
-    }
-    setPadding(Screen.dp(12f), Screen.dp(10f), Screen.dp(12f), Screen.dp(10f));
     addTextChangedListener(new TextWatcher() {
       @Override
       public void beforeTextChanged (CharSequence s, int start, int count, int after) { }
@@ -1377,6 +1370,16 @@ public class InputView extends NoClipEditText implements InlineSearchContext.Cal
 
   @Override
   protected void onDraw (Canvas c) {
+    // Apple iMessage: draw pill-shaped gray background FIRST (behind everything)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      final int w = getMeasuredWidth();
+      final int h = getMeasuredHeight();
+      final int pad = Screen.dp(8f);
+      pillRect.set(pad, pad, w - pad, h - pad);
+      final android.graphics.Paint bgPaint = Paints.fillingPaint(APPLE_GRAY_BG);
+      c.drawRoundRect(pillRect, Screen.dp(PILL_RADIUS_DP), Screen.dp(PILL_RADIUS_DP), bgPaint);
+    }
+
     final int x = getPaddingLeft() + Screen.dp(placeholderIcon != null ? 20 : 0);
     final float alpha = showPlaceholder.getFloatValue();
     final int offset = (int) (hasSubPlaceholder.getFloatValue() * (getTextSize() / 18 * 8));

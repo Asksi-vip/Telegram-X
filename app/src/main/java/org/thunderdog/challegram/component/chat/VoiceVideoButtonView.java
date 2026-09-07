@@ -131,59 +131,31 @@ public class VoiceVideoButtonView extends View implements FactorAnimator.Target,
 
     final Paint paint = hasTouchControls ? Paints.getIconGrayPorterDuffPaint() : getIconPaint();
     final int savedAlpha = paint.getAlpha();
-    final float generalFactor = (1f - sendFactor);
-    if (generalFactor > 0f) {
-      float alpha = generalFactor * (1f - searchFactor);
-      if (alpha > 0f) {
-        final float scale = Config.DEFAULT_ICON_SWITCH_SCALE + (1f - Config.DEFAULT_ICON_SWITCH_SCALE) * (1f - searchFactor);
-        if (scale != 1f) {
-          c.save();
-          c.scale(scale, scale, cx, cy);
-        }
 
-        int y;
+    // Apple iMessage: blue circle always visible, fading based on sendFactor
+    final float circleRadius = Screen.dp(18f);
+    final Paint blueCirclePaint = Paints.fillingPaint(android.graphics.Color.parseColor("#007AFF"));
+    final float circleAlpha = Math.max(sendFactor, 1f - searchFactor);
+    blueCirclePaint.setAlpha((int) (255f * circleAlpha));
+    c.drawCircle(cx, cy, circleRadius, blueCirclePaint);
 
-        y = (int) (cy + (cy + videoIcon.getMinimumHeight() / 2) * videoFactor);
-        paint.setAlpha((int) ((float) savedAlpha * ((1f - videoFactor) * alpha)));
-        Drawables.drawCentered(c, micIcon, cx, y, paint);
-
-        y = (int) (cy - (cy + videoIcon.getMinimumHeight() / 2) * (1f - videoFactor));
-        paint.setAlpha((int) ((float) savedAlpha * videoFactor * alpha));
-        Drawables.drawCentered(c, videoIcon, cx, y, paint);
-
-        if (scale != 1f) {
-          c.restore();
-        }
-      }
-      alpha = generalFactor * searchFactor;
-      if (alpha > 0f) {
-        final float scale = Config.DEFAULT_ICON_SWITCH_SCALE + (1f - Config.DEFAULT_ICON_SWITCH_SCALE) * searchFactor;
-        if (scale != 1f) {
-          c.save();
-          c.scale(scale, scale, cx, cy);
-        }
-
-        paint.setAlpha((int) ((float) savedAlpha * alpha));
-        Drawables.drawCentered(c, searchIcon, cx, cy, paint);
-
-        if (scale != 1f) {
-          c.restore();
-        }
-      }
-    }
-
+    // White icons on blue circle
+    final Paint whitePaint = Paints.fillingPaint(android.graphics.Color.WHITE);
     if (sendFactor > 0f) {
-      // Apple Messages style: blue circle background behind send icon
-      final float circleRadius = Screen.dp(16f);
-      final Paint circlePaint = Paints.fillingPaint(android.graphics.Color.parseColor("#007AFF"));
-      circlePaint.setAlpha((int) (sendFactor * 255f));
-      c.drawCircle(cx, cy, circleRadius, circlePaint);
-      
-      // Draw send icon on top of blue circle
-      paint.setAlpha((int) ((float) savedAlpha * sendFactor));
-      Drawables.drawCentered(c, sendIcon, cx, cy, paint);
+      // Send mode: arrow-up icon
+      whitePaint.setAlpha((int) (255f * sendFactor));
+      Drawables.drawCentered(c, sendIcon, cx, cy, whitePaint);
     } else {
-      // No send mode: draw mic/video/search as usual (handled above)
+      // Idle mode: mic/video icon
+      final float iconAlpha = 1f - searchFactor;
+      if (iconAlpha > 0f) {
+        int y = (int) (cy + (cy + micIcon.getMinimumHeight() / 2) * videoFactor);
+        whitePaint.setAlpha((int) (255f * (1f - videoFactor) * iconAlpha));
+        Drawables.drawCentered(c, micIcon, cx, y, whitePaint);
+        y = (int) (cy - (cy + videoIcon.getMinimumHeight() / 2) * (1f - videoFactor));
+        whitePaint.setAlpha((int) (255f * videoFactor * iconAlpha));
+        Drawables.drawCentered(c, videoIcon, cx, y, whitePaint);
+      }
     }
 
     paint.setAlpha(savedAlpha);
