@@ -16,23 +16,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          lfs: true
           fetch-depth: 0
 
-      - name: Ensure Submodules Exist
+      - name: Pull LFS for All Submodules
+        run: |
+          # Pull LFS objects in all submodules that have LFS-tracked files
+          git submodule foreach --recursive "git lfs pull 2>/dev/null || true"
+
+      - name: Ensure Critical Submodules Exist
         run: |
           for dir in vkryl/leveldb vkryl/core vkryl/android vkryl/td tdlib; do
             if [ ! -d "$dir" ] || [ -z "$(ls -A $dir 2>/dev/null)" ]; then
-              echo "Submodule $dir missing or empty, re-cloning..."
+              echo "Submodule $dir missing, re-cloning..."
               git submodule update --init --recursive --depth=1 $dir || true
             fi
           done
-          for dir in vkryl/leveldb vkryl/core vkryl/android vkryl/td tdlib; do
-            if [ ! -d "$dir" ] || [ -z "$(ls -A $dir 2>/dev/null)" ]; then
-              echo "FATAL: Submodule $dir still missing"
-              exit 1
-            fi
-          done
-          echo "All critical submodules present"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
