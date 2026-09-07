@@ -18,10 +18,12 @@ import android.content.ClipDescription;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
+import android.view.ViewOutlineProvider;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.Layout;
@@ -212,6 +214,18 @@ public class InputView extends NoClipEditText implements InlineSearchContext.Cal
     setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     Views.clearCursorDrawable(this);
     setMaxCodePointCount(0);
+
+    // Apple Messages style: rounded pill-shaped input
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      setOutlineProvider(new ViewOutlineProvider() {
+        @Override
+        public void getOutline (View view, android.graphics.Outline outline) {
+          outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), Screen.dp(20f));
+        }
+      });
+      setClipToOutline(true);
+    }
+    setPadding(Screen.dp(12f), Screen.dp(10f), Screen.dp(12f), Screen.dp(10f));
     addTextChangedListener(new TextWatcher() {
       @Override
       public void beforeTextChanged (CharSequence s, int start, int count, int after) { }

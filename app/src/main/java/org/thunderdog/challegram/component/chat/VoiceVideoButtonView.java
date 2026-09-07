@@ -172,8 +172,19 @@ public class VoiceVideoButtonView extends View implements FactorAnimator.Target,
       }
     }
 
-    paint.setAlpha((int) ((float) savedAlpha * sendFactor));
-    Drawables.drawCentered(c, sendIcon, cx, cy, paint);
+    if (sendFactor > 0f) {
+      // Apple Messages style: blue circle background behind send icon
+      final float circleRadius = Screen.dp(16f);
+      final Paint circlePaint = Paints.createPorterDuffPaint(android.graphics.Color.parseColor("#007AFF"));
+      circlePaint.setAlpha((int) (sendFactor * 255f));
+      c.drawCircle(cx, cy, circleRadius, circlePaint);
+      
+      // Draw send icon on top of blue circle
+      paint.setAlpha((int) ((float) savedAlpha * sendFactor));
+      Drawables.drawCentered(c, sendIcon, cx, cy, paint);
+    } else {
+      // No send mode: draw mic/video/search as usual (handled above)
+    }
 
     paint.setAlpha(savedAlpha);
   }

@@ -158,6 +158,10 @@ public class SendButton extends View implements FactorAnimator.Target, TooltipOv
           slowModeCounterController.getSlowModeDelayProgress() : 1f;
 
         if (slowModeDelayProgress == 1f) {
+          // Apple Messages style: blue circle behind send icon
+          final float sendRadius = Screen.dp(16f);
+          float iconScale = Screen.dp(16f) / (float) Math.max(iconW / 2f, 1);
+          c.drawCircle(cx, cy, sendRadius, Paints.createPorterDuffPaint(android.graphics.Color.parseColor("#007AFF")));
           Drawables.draw(c, sendIcon, iconX, iconY, paint);
         } else {
           int s = Views.save(c);

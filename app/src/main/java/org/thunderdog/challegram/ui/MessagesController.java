@@ -762,8 +762,15 @@ public class MessagesController extends ViewController<MessagesController.Argume
     };
     bottomWrap.setId(R.id.msg_bottom);
     bottomWrap.setOrientation(LinearLayout.VERTICAL);
-    bottomWrap.setMinimumHeight(Screen.dp(49f));
+    bottomWrap.setMinimumHeight(Screen.dp(56f));
+    bottomWrap.setPadding(0, 0, 0, Screen.dp(4f));
     bottomWrap.setLayoutParams(params);
+
+    // Apple Messages style: subtle top divider
+    View composeDivider = new View(context);
+    composeDivider.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
+    composeDivider.setBackgroundColor(0x1F000000);
+    bottomWrap.addView(composeDivider);
 
     if (previewMode == PREVIEW_MODE_NONE && !isInForceTouchMode()) {
       inputView = new InputView(context, tdlib, this) {
