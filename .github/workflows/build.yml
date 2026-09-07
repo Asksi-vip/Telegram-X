@@ -46,7 +46,7 @@ jobs:
           cat <<EOF > local.properties
           sdk.dir=$ANDROID_HOME
           app.disable_signing=true
-          app.id=org.thunderdog.challegram
+          app.id=org.thunderdog.challegramx.custom
           app.name=Telegram X
           app.download_url=https://telegram.org/dlx
           app.sources_url=https://github.com/${{ github.repository }}
