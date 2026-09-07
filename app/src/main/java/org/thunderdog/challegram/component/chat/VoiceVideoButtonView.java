@@ -175,7 +175,7 @@ public class VoiceVideoButtonView extends View implements FactorAnimator.Target,
     if (sendFactor > 0f) {
       // Apple Messages style: blue circle background behind send icon
       final float circleRadius = Screen.dp(16f);
-      final Paint circlePaint = Paints.createPorterDuffPaint(android.graphics.Color.parseColor("#007AFF"));
+      final Paint circlePaint = Paints.fillingPaint(android.graphics.Color.parseColor("#007AFF"));
       circlePaint.setAlpha((int) (sendFactor * 255f));
       c.drawCircle(cx, cy, circleRadius, circlePaint);
       
