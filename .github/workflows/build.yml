@@ -15,10 +15,24 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           fetch-depth: 0
 
-      - name: Clone All Submodules Recursively
-        run: git submodule update --init --recursive --depth=1
+      - name: Ensure Submodules Exist
+        run: |
+          for dir in vkryl/leveldb vkryl/core vkryl/android vkryl/td tdlib; do
+            if [ ! -d "$dir" ] || [ -z "$(ls -A $dir 2>/dev/null)" ]; then
+              echo "Submodule $dir missing or empty, re-cloning..."
+              git submodule update --init --recursive --depth=1 $dir || true
+            fi
+          done
+          for dir in vkryl/leveldb vkryl/core vkryl/android vkryl/td tdlib; do
+            if [ ! -d "$dir" ] || [ -z "$(ls -A $dir 2>/dev/null)" ]; then
+              echo "FATAL: Submodule $dir still missing"
+              exit 1
+            fi
+          done
+          echo "All critical submodules present"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -32,14 +46,13 @@ jobs:
 
       - name: Install Android NDK & CMake
         run: |
-          SDK_PACKAGE=$(grep "version.sdk_package" version.properties | cut -d'=' -f2)
-          BUILD_TOOLS_VERSION=$(grep "version.build_tools" version.properties | cut -d'=' -f2)
-          NDK_PRIMARY=$(grep "version.ndk_primary" version.properties | cut -d'=' -f2)
-          NDK_LEGACY=$(grep "version.ndk_legacy" version.properties | cut -d'=' -f2)
-          CMAKE_VERSION=$(grep "version.cmake" version.properties | cut -d'=' -f2)
-          
           echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;$SDK_PACKAGE" "build-tools;$BUILD_TOOLS_VERSION" "ndk;$NDK_PRIMARY" "ndk;$NDK_LEGACY" "cmake;$CMAKE_VERSION" || true
+          SDK_PACKAGE=$(grep "^version.sdk_package=" version.properties | cut -d'=' -f2 | cut -d'.' -f1)
+          BUILD_TOOLS_VERSION=$(grep "^version.build_tools=" version.properties | cut -d'=' -f2)
+          NDK_PRIMARY=$(grep "^version.ndk_primary=" version.properties | cut -d'=' -f2)
+          NDK_LEGACY=$(grep "^version.ndk_legacy=" version.properties | cut -d'=' -f2)
+          CMAKE_VERSION=$(grep "^version.cmake=" version.properties | cut -d'=' -f2)
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-35" "platforms;$SDK_PACKAGE" "build-tools;$BUILD_TOOLS_VERSION" "ndk;$NDK_PRIMARY" "ndk;$NDK_LEGACY" "cmake;$CMAKE_VERSION" || true
 
       - name: Create local.properties
         run: |
